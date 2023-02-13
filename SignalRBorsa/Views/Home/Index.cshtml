@@ -1,0 +1,215 @@
+﻿@model List<SignalRBorsa.Controllers.Model>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+    <style>
+        table,tr,td,th{
+            border:1px solid grey;
+        }
+    </style>
+<script type="text/javascript">
+    @*@{
+        DateTime GuncelTarih = DateTime.Now;
+
+        }*@
+
+@*xyil =@(GuncelTarih.Year.ToString());
+        xay =@(GuncelTarih.Month.ToString());
+        xgun =@(GuncelTarih.Day.ToString());*@
+        @*saat =@(GuncelTarih.Hour.ToString());
+        dakika =@(GuncelTarih.Minute.ToString());
+    saniye =@(GuncelTarih.Second.ToString());*@
+     var dataArray = [];
+function fetchData() {
+  $.ajax({
+    url: "https://www.sabah.com.tr/finans/pages/canliborsa_data?yil=%202023%20&ay=%202%20&gun=%203%20&saat=%2018%20&dakika=%2010%20&saniye=%200%20&rnd=8721888452",
+      type: "GET",
+      dataType:"jsonp",
+      success: function (data) {
+
+          var responseText = data.responseText.replace("callbackRT(", "").replace("\"});", "\"}");
+          let arr = responseText.split("~");
+
+    for (const item of arr) {
+      if (item.includes("}") || item.includes("{")) {
+        continue;
+        }
+
+        let arr2 = item.split("|");
+        console.log(arr2);
+    }
+    }
+  });
+    }
+
+    function callbackRT(data) {
+        var txt = '';
+        for (var key in data) {
+            txt += key + " = " + data[key];
+            txt += "\n";
+
+            var asd = txt.split("~")
+            dataArray = asd;
+          
+            var dataContainer = $("#data-container");
+            dataContainer.html("");
+            for (var i = 1; i < dataArray.length; i++) {
+                dataContainer.append("<tr>");
+                var datarr2 = dataArray[i].split("|");
+                for (var j = 0; j < 4; j++) {
+                    if (datarr2[j]!="") {
+                     dataContainer.append("<td>" + datarr2[j] + "</td>");
+
+                    }
+                }
+                   dataContainer.append("</tr>");
+
+            }
+
+
+
+            //var veri_Array = data.split("~");
+            //var tarih_Array = dataArray[0].split("|");
+            return true;
+        }
+    }
+
+
+function displayData() {
+      var dataContainer = $("#data-container");
+    dataContainer.empty();
+    debugger;
+    for (var i = 0; i < dataArray.data.length; ) {
+        dataContainer.append("<li class='hNarrow' style='display: block;'>" + dataArray.data[i].symbol + " " + dataArray.data[i].lastPrice + "</li>");
+
+        //dataContainer.append(`<li>${dataArray.data[i].symbol + dataArray.data[i].lastPrice} </li>}`).slice(0, -1);
+  }
+
+
+    }
+     fetchData();
+   setInterval(fetchData, 5000);
+
+//    var apiURL ="https://www.sabah.com.tr/finans/services/kripto_paralar";
+
+//    var dataList = [];
+
+//   }
+//});
+
+//    function fetchData() {
+//        $.ajax({
+//            url: apiURL,
+//            success: function (data) {
+//                dataList = data;
+//                console.log(dataList.data[0].lastPrice,"asds");
+//                updateList();
+
+//            }
+//        });
+//    }
+
+//   function updateList() {
+
+//       var listEl = $("#Ul");
+
+//       listEl.empty();
+
+
+
+//       for (var i = 0; i < 20; i++) {
+//           //var item = document.createElement("li");
+//           //item.textContent = dataList.data[i];
+//            listEl.innerHTML = dataList.data[i]
+//           listEl.append(`<li>${dataList.data[i].lastPrice}</li>`);
+
+
+//            console.log(listEl);
+//           //console.log(list,"asd");
+
+//  }
+//}
+//    fetchData();
+//    setInterval(fetchData, 5000);
+
+
+      var messagehub = $.connection.borsa;
+
+    messagehub.client.addData = function (data) {
+        $(".dataList ul").each(function (index, element) {
+            var bc = document.getElementById("Son" + data.Name).innerHTML;
+            var ad = $("#Son" + data.Name).text(data.Son)[0].innerHTML;
+            console.log(bc, "önceki değer");
+            console.log(ad, "son değer");
+            if (bc > ad) {
+                $("#Ul" + data.Name).css("background-color", "red").fadeIn(200);
+                window.setTimeout(function () {
+                    $("#Ul" + data.Name).css("background-color", "").fadeIn(200);
+                }, 500);
+            }
+            if (bc < ad) {
+                $("#Ul" + data.Name).css("background-color", "green").fadeIn(200);
+                window.setTimeout(function () {
+                    $("#Ul" + data.Name).css("background-color", "").fadeIn(200);
+                }, 500);
+            }
+        });
+
+        $("#Son" + data.Name).text(data.Son);
+        $("#Dun" + data.Name).text(data.Dun);
+        $("#Yuzde" + data.Name).text(data.Yuzde);
+        $("#Yuksek" + data.Name).text(data.Yuksek);
+        $("#Dusuk" + data.Name).text(data.Dusuk);
+        $("#Ort" + data.Name).text(data.Ort);
+        $("#HacimLot" + data.Name).text(data.HacimLot);
+        $("#HacimTl" + data.Name).text(data.HacimTl);
+    }
+
+    messagehub.client.changeBG = function (ID) {
+        if (ID == 1) {
+            $("body").css({ "backgroundImage": "url('/content/bg5.jpg')" });
+        }
+        else if (ID == 2) {
+            $("body").css({ "backgroundImage": "url('/content/bg2.jpg')" });
+        }
+    }
+    $.connection.hub.start();
+
+</script>
+<body>
+
+
+    <div style="width:800px; margin:0 auto;">
+        <div class="oranlar">
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Fiyat</th>
+                        <th>Oran</th>
+                        <th>Zaman</th>
+                        <th>Saat</th>
+                    </tr>
+                </thead>
+
+                <tbody id="data-container">
+                </tbody>
+            </table>
+        </div>
+
+
+
+
+
+
+        @*<li class="hBig Arrow" id="Name"><span class="s up"></span></li>
+
+            <li class="hNarrow" id="Fiyat"></li>
+
+            <li class="hNarrow" id="Oran"></li>
+            <li class="hNarrow" id="Zaman"></li>*@
+
+    </div>
+
+</body>
